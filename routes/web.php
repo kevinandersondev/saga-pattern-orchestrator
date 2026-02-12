@@ -1,7 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CheckoutController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', function () { return view('welcome'); }); // Rota padrão
+Route::post('/checkout', [CheckoutController::class, 'store']); // Nossa rota

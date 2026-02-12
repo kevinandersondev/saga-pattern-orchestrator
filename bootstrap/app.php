@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // AQUI ESTÁ A MUDANÇA:
+        $middleware->validateCsrfTokens(except: [
+            'checkout', // Libera a rota /checkout da proteção CSRF
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
