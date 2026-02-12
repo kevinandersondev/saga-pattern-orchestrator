@@ -1,21 +1,13 @@
-# 🎼 Laravel Saga Pattern Orchestrator
+🎼 Laravel Saga Pattern Orchestrator
+Este repositório é uma implementação de Engenharia de Software demonstrando como lidar com Transações Distribuídas e consistência de dados em sistemas complexos onde o ACID tradicional do banco de dados não é suficiente (ou em arquiteturas de microserviços).
 
-![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Sail-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Pattern](https://img.shields.io/badge/Pattern-Saga_Orchestration-purple?style=for-the-badge)
-
-Este repositório é uma implementação de **Engenharia de Software** demonstrando como lidar com **Transações Distribuídas** e consistência de dados em sistemas complexos onde o ACID tradicional do banco de dados não é suficiente (ou em arquiteturas de microserviços).
-
-## 🧠 O Problema e a Solução
-
+🧠 O Problema e a Solução
 Em sistemas distribuídos, uma operação de negócio (ex: Compra) envolve múltiplos serviços (Pagamento, Estoque, Nota Fiscal). Se o passo 3 falhar, como desfazemos o passo 1 que já foi commitado no banco?
 
-Este projeto implementa o **Saga Pattern (Orquestrado)**. Um "Orquestrador" central coordena os passos e, em caso de falha, executa transações de compensação (rollback lógico) na ordem inversa.
+Este projeto implementa o Saga Pattern (Orquestrado). Um "Orquestrador" central coordena os passos e, em caso de falha, executa transações de compensação (rollback lógico) na ordem inversa.
 
-### Fluxo da Aplicação (Happy Path vs. Failure Path)
-
-```mermaid
+Fluxo da Aplicação (Happy Path vs. Failure Path)
+Code snippet
 sequenceDiagram
     participant User
     participant Orchestrator
@@ -37,7 +29,6 @@ sequenceDiagram
         Payment-->>Orchestrator: Estorno Realizado
         Orchestrator-->>User: Pedido Cancelado (Erro tratado)
     end
-
 
 🚀 Tecnologias e Conceitos Aplicados
 Laravel 11: Framework Backend.
@@ -69,7 +60,7 @@ Pré-requisitos: Docker e WSL2 (se estiver no Windows).
 Clone o repositório:
 
 Bash
-git clone [https://github.com/seu-usuario/saga-pattern-laravel.git](https://github.com/seu-usuario/saga-pattern-laravel.git)
+git clone https://github.com/seu-usuario/saga-pattern-laravel.git
 cd saga-pattern-laravel
 Suba os containers (Laravel Sail):
 
@@ -112,5 +103,6 @@ O Orquestrador aciona o Estorno do Pagamento automaticamente.
 
 O Pedido é cancelado.
 
-Autor
+.
+.
 Desenvolvido por Kevin Anderson.
