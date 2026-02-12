@@ -1,59 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎼 Laravel Saga Pattern Orchestrator
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Sail-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Pattern](https://img.shields.io/badge/Pattern-Saga_Orchestration-purple?style=for-the-badge)
 
-## About Laravel
+Este repositório é uma implementação de **Engenharia de Software** demonstrando como lidar com **Transações Distribuídas** e consistência de dados em sistemas complexos onde o ACID tradicional do banco de dados não é suficiente (ou em arquiteturas de microserviços).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🧠 O Problema e a Solução
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Em sistemas distribuídos, uma operação de negócio (ex: Compra) envolve múltiplos serviços (Pagamento, Estoque, Nota Fiscal). Se o passo 3 falhar, como desfazemos o passo 1 que já foi commitado no banco?
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Este projeto implementa o **Saga Pattern (Orquestrado)**. Um "Orquestrador" central coordena os passos e, em caso de falha, executa transações de compensação (rollback lógico) na ordem inversa.
 
-## Learning Laravel
+### Fluxo da Aplicação (Happy Path vs. Failure Path)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```mermaid
+sequenceDiagram
+    participant User
+    participant Orchestrator
+    participant Payment
+    participant Inventory
+    
+    User->>Orchestrator: Iniciar Compra
+    Orchestrator->>Payment: 1. Cobrar Cartão
+    Payment-->>Orchestrator: Sucesso (R$ 100)
+    
+    Orchestrator->>Inventory: 2. Baixar Estoque
+    alt Sucesso
+        Inventory-->>Orchestrator: OK
+        Orchestrator-->>User: Pedido Confirmado
+    else Falha (Estoque Insuficiente)
+        Inventory--xOrchestrator: Erro!
+        Note right of Orchestrator: Iniciar Rollback (Saga)
+        Orchestrator->>Payment: 3. Estornar (Compensate)
+        Payment-->>Orchestrator: Estorno Realizado
+        Orchestrator-->>User: Pedido Cancelado (Erro tratado)
+    end
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
+🚀 Tecnologias e Conceitos Aplicados
+Laravel 11: Framework Backend.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Vue.js 3 + Inertia: Frontend reativo para visualização dos logs em tempo real.
 
-### Premium Partners
+Design Patterns:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Saga Pattern: Gerenciamento de transações longas.
 
-## Contributing
+Command Pattern: Cada passo da saga é uma classe encapsulada.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Interface Segregation: Contrato estrito (execute / compensate) para todos os passos.
 
-## Code of Conduct
+Docker & Sail: Ambiente de desenvolvimento containerizado.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+📂 Estrutura do Core (Onde a mágica acontece)
+A lógica complexa não está nos Controllers, mas isolada no domínio da aplicação:
 
-## Security Vulnerabilities
+app/Saga/SagaOrchestrator.php: O motor que gerencia a execução e o rollback automático.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+app/Saga/Interfaces/SagaStep.php: O contrato que obriga a implementação do método compensate.
 
-## License
+app/Saga/Steps/*: Implementações isoladas de cada serviço (Pagamento, Estoque).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+🛠️ Instalação e Execução
+Pré-requisitos: Docker e WSL2 (se estiver no Windows).
+
+Clone o repositório:
+
+Bash
+git clone [https://github.com/seu-usuario/saga-pattern-laravel.git](https://github.com/seu-usuario/saga-pattern-laravel.git)
+cd saga-pattern-laravel
+Suba os containers (Laravel Sail):
+
+Bash
+./vendor/bin/sail up -d
+Instale dependências e migre o banco:
+
+Bash
+./vendor/bin/sail composer install
+./vendor/bin/sail npm install
+./vendor/bin/sail artisan migrate
+Inicie o Frontend:
+
+Bash
+./vendor/bin/sail npm run dev
+🧪 Como Testar a Saga (Prova de Conceito)
+Acesse http://localhost/visualizar-saga.
+
+A aplicação foi desenhada para simular falhas baseadas na quantidade de itens:
+
+Cenário de Sucesso:
+
+Insira Quantidade: 1.
+
+Resultado: Pagamento OK -> Estoque OK -> Pedido Confirmado.
+
+Cenário de Falha (Rollback Automático):
+
+Insira Quantidade: 10.
+
+O que acontece:
+
+O Pagamento é aprovado.
+
+O Estoque falha (simulação de falta de produto).
+
+O Orquestrador detecta o erro.
+
+O Orquestrador aciona o Estorno do Pagamento automaticamente.
+
+O Pedido é cancelado.
+
+Autor
+Desenvolvido por Kevin Anderson.
